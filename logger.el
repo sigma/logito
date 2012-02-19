@@ -49,7 +49,8 @@
     (apply 'logger-insert-log log string objects)))
 
 (defmethod logger-log (log level string &rest objects)
-  "Fallback implementation, do nothing")
+  "Fallback implementation, do nothing. This allows in particular
+  to pass nil as the log object.")
 
 (defclass logger-message-object (logger-object)
   ())
