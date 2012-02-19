@@ -69,6 +69,8 @@
       (insert (apply 'format string objects) "\n"))))
 
 (defmacro logger-def-level (sym val)
+  "Define a constant logger-<SYM>-level and a macro logger:<SYM>
+associated with this level."
   (let ((const (intern (format "logger-%s-level" (symbol-name sym))))
         (mac (intern (format "logger:%s" (symbol-name sym)))))
     `(progn
