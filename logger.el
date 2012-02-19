@@ -70,11 +70,18 @@
       (goto-char (point-max))
       (insert (apply 'format string objects) "\n"))))
 
+(defvar logger-def-in-package 'logger
+  "Object holding the prefix to give to the generated
+  accessors. This allows using custom log levels in different
+  packages")
+
 (defmacro logger-def-level (sym val)
   "Define a constant logger-<SYM>-level and a macro logger:<SYM>
 associated with this level."
-  (let ((const (intern (format "logger-%s-level" (symbol-name sym))))
-        (mac (intern (format "logger:%s" (symbol-name sym)))))
+  (let ((const (intern (format "%s:%s-level"
+                               logger-def-in-package (symbol-name sym))))
+        (mac (intern (format "%s:%s"
+                             logger-def-in-package (symbol-name sym)))))
     `(progn
        (defconst ,const ,val)
        (defmacro ,mac (log string &rest objects)
@@ -83,10 +90,12 @@ associated with this level."
                 (list 'format "[%s] %s" '',sym string))
           objects)))))
 
-(logger-def-level error 0)
-(logger-def-level info 5)
-(logger-def-level verbose 10)
-(logger-def-level debug 15)
+;; built-in log levels
+(let ((logger-def-in-package 'logger))
+  (logger-def-level error 0)
+  (logger-def-level info 5)
+  (logger-def-level verbose 10)
+  (logger-def-level debug 15))
 
 (provide 'logger)
 ;;; logger.el ends here
