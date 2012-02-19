@@ -34,13 +34,15 @@
 (require 'eieio)
 
 (defclass logger-object ()
-  ((level :initarg :level :initform logger-error-level)))
+  ((level :initarg :level :initform nil)))
 
 (defmethod logger-insert-log ((log logger-object) string &rest objects)
   "Base implementation, do nothing")
 
 (defmethod logger-should-log ((log logger-object) level)
-  (<= level (oref log :level)))
+  (let ((l (oref log :level)))
+    (and (integerp l)
+         (<= level l))))
 
 (defmethod logger-log ((log logger-object) level string &rest objects)
   (when (logger-should-log log level)
