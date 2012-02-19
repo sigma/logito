@@ -34,19 +34,39 @@
 (require 'eieio)
 
 (defclass logger-object ()
-  ((buffer :initarg :buffer :initform nil)
-   (level :initarg :level :initform logger-error-level)))
+  ((level :initarg :level :initform logger-error-level)))
+
+(defmethod logger-insert-log ((log logger-object) string &rest objects)
+  "Base implementation, do nothing")
+
+(defmethod logger-should-log ((log logger-object) level)
+  (<= level (oref log :level)))
 
 (defmethod logger-log ((log logger-object) level string &rest objects)
-  (when (and (oref log :buffer)
-             (<= level (oref log :level)))
-    (let ((buffer (get-buffer-create (oref log :buffer))))
-      (with-current-buffer buffer
-        (goto-char (point-max))
-        (insert (apply 'format string objects) "\n")))))
+  (when (logger-should-log log level)
+    (apply 'logger-insert-log log string objects)))
 
 (defmethod logger-log (log level string &rest objects)
-  nil)
+  "Fallback implementation, do nothing")
+
+(defclass logger-message-object (logger-object)
+  ())
+
+(defmethod logger-insert-log ((log logger-message-object) string &rest objects)
+  (apply 'message string objects))
+
+(defclass logger-buffer-object (logger-object)
+  ((buffer :initarg :buffer :initform nil)))
+
+(defmethod logger-should-log ((log logger-buffer-object) level)
+  (and (oref log :buffer)
+       (call-next-method)))
+
+(defmethod logger-insert-log ((log logger-buffer-object) string &rest objects)
+  (let ((buffer (get-buffer-create (oref log :buffer))))
+    (with-current-buffer buffer
+      (goto-char (point-max))
+      (insert (apply 'format string objects) "\n"))))
 
 (defmacro logger-def-level (sym val)
   (let ((const (intern (format "logger-%s-level" (symbol-name sym))))
@@ -54,11 +74,10 @@
     `(progn
        (defconst ,const ,val)
        (defmacro ,mac (log string &rest objects)
-         (when log
-           (append
-            (list 'logger-log log ,const
-                  (list 'format "[%s] %s" '',sym string))
-            objects))))))
+         (append
+          (list 'logger-log log ,const
+                (list 'format "[%s] %s" '',sym string))
+          objects)))))
 
 (logger-def-level error 0)
 (logger-def-level info 5)
