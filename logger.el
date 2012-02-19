@@ -69,7 +69,7 @@
   (let ((buffer (get-buffer-create (oref log :buffer))))
     (with-current-buffer buffer
       (goto-char (point-max))
-      (insert (apply 'format string objects) "\n"))))
+      (insert (apply 'format string objects) "\n\n"))))
 
 (defvar logger-def-in-package 'logger
   "Object holding the prefix to give to the generated
