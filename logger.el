@@ -36,7 +36,7 @@
 (defclass logger-object ()
   ((level :initarg :level :initform nil)))
 
-(defmethod logger-insert-log ((log logger-object) string &rest objects)
+(defmethod logger-insert-log ((log logger-object) format &rest objects)
   "Base implementation, do nothing")
 
 (defmethod logger-should-log ((log logger-object) level)
@@ -55,8 +55,8 @@
 (defclass logger-message-object (logger-object)
   ())
 
-(defmethod logger-insert-log ((log logger-message-object) string &rest objects)
-  (apply 'message string objects))
+(defmethod logger-insert-log ((log logger-message-object) format &rest objects)
+  (apply 'message format objects))
 
 (defclass logger-buffer-object (logger-object)
   ((buffer :initarg :buffer :initform nil)))
@@ -65,11 +65,11 @@
   (and (oref log :buffer)
        (call-next-method)))
 
-(defmethod logger-insert-log ((log logger-buffer-object) string &rest objects)
+(defmethod logger-insert-log ((log logger-buffer-object) format &rest objects)
   (let ((buffer (get-buffer-create (oref log :buffer))))
     (with-current-buffer buffer
       (goto-char (point-max))
-      (insert (apply 'format string objects) "\n\n"))))
+      (insert (apply 'format format objects) "\n\n"))))
 
 (defvar logger-def-in-package 'logger
   "Object holding the prefix to give to the generated
