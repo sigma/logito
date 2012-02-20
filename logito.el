@@ -1,4 +1,4 @@
-;;; logger.el --- logging library for Emacs
+;;; logito.el --- logging library for Emacs
 
 ;; Copyright (C) 2012  Yann Hodique
 
@@ -33,69 +33,69 @@
 
 (require 'eieio)
 
-(defclass logger-object ()
+(defclass logito-object ()
   ((level :initarg :level :initform nil)))
 
-(defmethod logger-insert-log ((log logger-object) format &rest objects)
+(defmethod logito-insert-log ((log logito-object) format &rest objects)
   "Base implementation, do nothing")
 
-(defmethod logger-should-log ((log logger-object) level)
+(defmethod logito-should-log ((log logito-object) level)
   (let ((l (oref log :level)))
     (and (integerp l)
          (<= level l))))
 
-(defmethod logger-log ((log logger-object) level tag string &rest objects)
-  (when (logger-should-log log level)
-    (apply 'logger-insert-log log (format "[%s] %s" tag string) objects)))
+(defmethod logito-log ((log logito-object) level tag string &rest objects)
+  (when (logito-should-log log level)
+    (apply 'logito-insert-log log (format "[%s] %s" tag string) objects)))
 
-(defmethod logger-log (log level tag string &rest objects)
+(defmethod logito-log (log level tag string &rest objects)
   "Fallback implementation, do nothing. This allows in particular
   to pass nil as the log object.")
 
-(defclass logger-message-object (logger-object)
+(defclass logito-message-object (logito-object)
   ())
 
-(defmethod logger-insert-log ((log logger-message-object) format &rest objects)
+(defmethod logito-insert-log ((log logito-message-object) format &rest objects)
   (apply 'message format objects))
 
-(defclass logger-buffer-object (logger-object)
+(defclass logito-buffer-object (logito-object)
   ((buffer :initarg :buffer :initform nil)))
 
-(defmethod logger-should-log ((log logger-buffer-object) level)
+(defmethod logito-should-log ((log logito-buffer-object) level)
   (and (oref log :buffer)
        (call-next-method)))
 
-(defmethod logger-insert-log ((log logger-buffer-object) format &rest objects)
+(defmethod logito-insert-log ((log logito-buffer-object) format &rest objects)
   (let ((buffer (get-buffer-create (oref log :buffer))))
     (with-current-buffer buffer
       (goto-char (point-max))
       (insert (apply 'format format objects) "\n\n"))))
 
-(defvar logger-def-in-package 'logger
+(defvar logito-def-in-package 'logito
   "Object holding the prefix to give to the generated
   accessors. This allows using custom log levels in different
   packages")
 
-(defmacro logger-def-level (sym val)
-  "Define a constant logger-<SYM>-level and a macro logger:<SYM>
+(defmacro logito-def-level (sym val)
+  "Define a constant logito-<SYM>-level and a macro logito:<SYM>
 associated with this level."
   (let ((const (intern (format "%s:%s-level"
-                               logger-def-in-package (symbol-name sym))))
+                               logito-def-in-package (symbol-name sym))))
         (mac (intern (format "%s:%s"
-                             logger-def-in-package (symbol-name sym)))))
+                             logito-def-in-package (symbol-name sym)))))
     `(progn
        (defconst ,const ,val)
        (defmacro ,mac (log string &rest objects)
          (append
-          (list 'logger-log log ,const '',sym string)
+          (list 'logito-log log ,const '',sym string)
           objects)))))
 
 ;; built-in log levels
-(let ((logger-def-in-package 'logger))
-  (logger-def-level error 0)
-  (logger-def-level info 5)
-  (logger-def-level verbose 10)
-  (logger-def-level debug 15))
+(let ((logito-def-in-package 'logito))
+  (logito-def-level error 0)
+  (logito-def-level info 5)
+  (logito-def-level verbose 10)
+  (logito-def-level debug 15))
 
-(provide 'logger)
-;;; logger.el ends here
+(provide 'logito)
+;;; logito.el ends here
