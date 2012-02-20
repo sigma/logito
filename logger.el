@@ -44,11 +44,11 @@
     (and (integerp l)
          (<= level l))))
 
-(defmethod logger-log ((log logger-object) level string &rest objects)
+(defmethod logger-log ((log logger-object) level tag string &rest objects)
   (when (logger-should-log log level)
-    (apply 'logger-insert-log log string objects)))
+    (apply 'logger-insert-log log (format "[%s] %s" tag string) objects)))
 
-(defmethod logger-log (log level string &rest objects)
+(defmethod logger-log (log level tag string &rest objects)
   "Fallback implementation, do nothing. This allows in particular
   to pass nil as the log object.")
 
@@ -87,8 +87,7 @@ associated with this level."
        (defconst ,const ,val)
        (defmacro ,mac (log string &rest objects)
          (append
-          (list 'logger-log log ,const
-                (list 'format "[%s] %s" '',sym string))
+          (list 'logger-log log ,const '',sym string)
           objects)))))
 
 ;; built-in log levels
