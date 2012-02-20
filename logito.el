@@ -50,7 +50,8 @@
 
 (defmethod logito-log (log level tag string &rest objects)
   "Fallback implementation, do nothing. This allows in particular
-  to pass nil as the log object.")
+  to pass nil as the log object."
+  nil)
 
 (defclass logito-message-object (logito-object)
   ())
