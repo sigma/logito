@@ -72,18 +72,14 @@
       (goto-char (point-max))
       (insert (apply 'format format objects) "\n\n"))))
 
-(defvar logito-def-in-package 'logito
-  "Object holding the prefix to give to the generated
-  accessors. This allows using custom log levels in different
-  packages")
-
-(defmacro logito-def-level (sym val)
+(defmacro logito-def-level (sym val &optional pkg)
   "Define a constant logito-<SYM>-level and a macro logito:<SYM>
 associated with this level."
-  (let ((const (intern (format "%s:%s-level"
-                               logito-def-in-package (symbol-name sym))))
-        (mac (intern (format "%s:%s"
-                             logito-def-in-package (symbol-name sym)))))
+  (let* ((pkg (or pkg 'logito))
+         (const (intern (format "%s:%s-level"
+                                (symbol-name pkg) (symbol-name sym))))
+         (mac (intern (format "%s:%s"
+                              (symbol-name pkg) (symbol-name sym)))))
     `(progn
        (defconst ,const ,val)
        (defmacro ,mac (log string &rest objects)
@@ -92,11 +88,10 @@ associated with this level."
           objects)))))
 
 ;; built-in log levels
-(let ((logito-def-in-package 'logito))
-  (logito-def-level error 0)
-  (logito-def-level info 5)
-  (logito-def-level verbose 10)
-  (logito-def-level debug 15))
+(logito-def-level error 0)
+(logito-def-level info 5)
+(logito-def-level verbose 10)
+(logito-def-level debug 15)
 
 (provide 'logito)
 ;;; logito.el ends here
